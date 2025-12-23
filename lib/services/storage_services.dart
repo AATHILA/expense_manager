@@ -552,5 +552,7 @@ class StorageService {
   static void closeDatabase() {
     _database = null;
   }
+
+  static saveTransaction(models.Transaction transaction) {}
 }
 

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:uuid/uuid.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import '../models/transaction.dart';
-import '../models/category.dart';
-import '../services/currency_services.dart';
+import 'package:uuid/uuid.dart';
 
+import '../blocs/transaction/transaction_bloc.dart';
+import '../blocs/transaction/transaction_event.dart';
+import '../models/category.dart';
+import '../models/transaction.dart';
 import '../services/storage_services.dart';
-import '../widgets/budget_breach_alert_dialog.dart';
-//import '../widgets/budget_breach_alert_dialog.dart';
+
+// Import placeholders for types used in the UI structure
+
+
+
 
 class AddTransactionScreen extends StatefulWidget {
   final Transaction? transaction;
@@ -20,6 +25,7 @@ class AddTransactionScreen extends StatefulWidget {
 }
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
+  // --- PLACEHOLDER STATE VARIABLES FOR UI WIDGETS ---
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
@@ -29,7 +35,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   String? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
-  List<ExpenseCategory> _categories = [];
+  List<ExpenseCategory> _categories = [
+  ];
 
   @override
   void initState() {
@@ -67,8 +74,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     });
   }
 
+
+
+  // --- WIDGET BUILD METHOD ---
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.transaction == null ? 'Add Transaction' : 'Edit Transaction'),
@@ -86,7 +97,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Type Selector
+            // Type Selector (SegmentedButton)
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(8),
@@ -107,16 +118,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   onSelectionChanged: (Set<TransactionType> newSelection) {
                     setState(() {
                       _type = newSelection.first;
-                      _selectedCategory = null;
+                      // Logic for category reset and reloading would go here
                     });
-                    _loadCategories();
                   },
                 ),
               ),
             ),
             const SizedBox(height: 16),
 
-            // Title
+            // Title TextFormField
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
@@ -134,9 +144,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Amount
+            // Amount TextFormField (Wrapped in FutureBuilder for Currency Symbol)
             FutureBuilder<String>(
-              future: CurrencyService.getCurrencySymbol(),
+              // Placeholder future, replace with real CurrencyService call in full code
+              future: Future.value('₹'),
               builder: (context, snapshot) {
                 final currencySymbol = snapshot.data ?? '₹';
                 return TextFormField(
@@ -176,7 +187,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Category
+            // Category DropdownButtonFormField
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               decoration: const InputDecoration(
@@ -210,7 +221,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Date
+            // Date Selection ListTile
             ListTile(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
@@ -223,7 +234,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Notes
+            // Notes TextFormField
             TextFormField(
               controller: _notesController,
               decoration: const InputDecoration(
@@ -236,7 +247,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Save Button
+            // Save/Update Button
             FilledButton(
               onPressed: _isLoading ? null : _saveTransaction,
               child: Padding(
@@ -293,26 +304,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       if (!mounted) return;
 
       // Check for budget breach only for expense transactions
-      if (_type == TransactionType.expense) {
-        final shouldProceed = await _checkBudgetBreach(transaction);
-        if (!shouldProceed) {
-          setState(() {
-            _isLoading = false;
-          });
-          return;
-        }
-      }
+      // if (_type == TransactionType.expense) {
+      //   final shouldCheckBudget = await _checkBudgetBreach(transaction);
+      //   if (!shouldCheckBudget) {
+      //     setState(() {
+      //       _isLoading = false;
+      //     });
+      //     return;
+      //   }
+      // }
 
       if (!mounted) return;
 
-      // ⭐️ REPLACED BLOC CALLS WITH PLACEHOLDER ACTIONS
       if (widget.transaction == null) {
-        print('ACTION: Add new transaction: ${transaction.title} (${transaction.amount})');
-        // In a non-Bloc app, you would call a service here to save to a database.
-        // Example: await StorageService.saveTransaction(transaction);
+        context.read<TransactionBloc>().add(AddTransaction(transaction));
       } else {
-        print('ACTION: Update transaction: ${transaction.title} (${transaction.amount}) ID: ${transaction.id}');
-        // Example: await StorageService.updateTransaction(transaction);
+        context.read<TransactionBloc>().add(UpdateTransaction(transaction));
       }
 
       Navigator.pop(context);
@@ -320,8 +327,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         SnackBar(
           content: Text(
             widget.transaction == null
-                ? 'Transaction added successfully (Non-Bloc)'
-                : 'Transaction updated successfully (Non-Bloc)',
+                ? 'Transaction added successfully'
+                : 'Transaction updated successfully',
           ),
         ),
       );
@@ -360,95 +367,93 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
 
     if (confirmed == true && widget.transaction != null && mounted) {
-      // ⭐️ REPLACED BLOC CALL WITH PLACEHOLDER ACTION
-      print('ACTION: Delete transaction with ID: ${widget.transaction!.id}');
-      // Example: await StorageService.deleteTransaction(widget.transaction!.id);
-
+      context.read<TransactionBloc>().add(DeleteTransaction(widget.transaction!.id));
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction deleted successfully (Non-Bloc)')),
+        const SnackBar(content: Text('Transaction deleted successfully')),
       );
     }
   }
 
-  Future<bool> _checkBudgetBreach(Transaction transaction) async {
-    try {
-      // Get all budgets
-      final budgets = await StorageService.getAllBudgetsAsync();
-
-      // Find budget for this category and month
-      final budget = budgets.where((b) =>
-      b.category == transaction.category &&
-          b.month == transaction.date.month &&
-          b.year == transaction.date.year
-      ).firstOrNull;
-
-      // If no budget set, allow transaction
-      if (budget == null) return true;
-
-      // Check if user has opted to skip alerts for this budget this month
-      final skipAlerts = await StorageService.shouldSkipBudgetAlert(
-        transaction.category,
-        transaction.date.month,
-        transaction.date.year,
-      );
-
-      if (skipAlerts) return true;
-
-      // Get all transactions for this category and month
-      final allTransactions = await StorageService.getAllTransactionsAsync();
-      final categoryTransactions = allTransactions.where((t) =>
-      t.category == transaction.category &&
-          t.type == TransactionType.expense &&
-          t.date.month == transaction.date.month &&
-          t.date.year == transaction.date.year &&
-          t.id != transaction.id // Exclude current transaction if editing
-      ).toList();
-
-      // Calculate current spent
-      final currentSpent = categoryTransactions.fold<double>(
-        0.0,
-            (sum, t) => sum + t.amount,
-      );
-
-      // Check if adding this transaction will breach the budget
-      final totalAfterTransaction = currentSpent + transaction.amount;
-
-      if (totalAfterTransaction > budget.limit) {
-        // Show budget breach alert
-        if (!mounted) return false;
-
-        final result = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => BudgetBreachAlertDialog(
-            category: transaction.category,
-            budgetLimit: budget.limit,
-            currentSpent: currentSpent,
-            newAmount: transaction.amount,
-            month: transaction.date.month,
-            year: transaction.date.year,
-            onContinue: () {},
-            onContinueWithPreference: (skipFuture) async {
-              if (skipFuture) {
-                await StorageService.setBudgetAlertPreference(
-                  transaction.category,
-                  transaction.date.month,
-                  transaction.date.year,
-                  true,
-                );
-              }
-            },
-          ),
-        );
-
-        return result ?? false;
-      }
-
-      return true;
-    } catch (e) {
-      // If there's an error checking budget, allow the transaction
-      return true;
-    }
-  }
 }
+
+// Future<bool> _checkBudgetBreach(Transaction transaction) async {
+//   try {
+//     // Get all budgets
+//     final budgets = await StorageService.getAllBudgetsAsync();
+//
+//     // Find budget for this category and month
+//     final budget = budgets.where((b) =>
+//     b.category == transaction.category &&
+//         b.month == transaction.date.month &&
+//         b.year == transaction.date.year
+//     ).firstOrNull;
+//
+//     // If no budget set, allow transaction
+//     if (budget == null) return true;
+//
+//     // Check if user has opted to skip alerts for this budget this month
+//     final skipAlerts = await StorageService.shouldSkipBudgetAlert(
+//       transaction.category,
+//       transaction.date.month,
+//       transaction.date.year,
+//     );
+//
+//     if (skipAlerts) return true;
+//
+//     // Get all transactions for this category and month
+//     final allTransactions = await StorageService.getAllTransactionsAsync();
+//     final categoryTransactions = allTransactions.where((t) =>
+//     t.category == transaction.category &&
+//         t.type == TransactionType.expense &&
+//         t.date.month == transaction.date.month &&
+//         t.date.year == transaction.date.year &&
+//         t.id != transaction.id // Exclude current transaction if editing
+//     ).toList();
+//
+//     // Calculate current spent
+//     final currentSpent = categoryTransactions.fold<double>(
+//       0.0,
+//           (sum, t) => sum + t.amount,
+//     );
+//
+//     // Check if adding this transaction will breach the budget
+//     final totalAfterTransaction = currentSpent + transaction.amount;
+//
+//     if (totalAfterTransaction > budget.limit) {
+//       // Show budget breach alert
+//       if (!mounted) return false;
+//
+//       final result = await showDialog<bool>(
+//         context: context,
+//         barrierDismissible: false,
+//         builder: (context) => BudgetBreachAlertDialog(
+//           category: transaction.category,
+//           budgetLimit: budget.limit,
+//           currentSpent: currentSpent,
+//           newAmount: transaction.amount,
+//           month: transaction.date.month,
+//           year: transaction.date.year,
+//           onContinue: () {},
+//           onContinueWithPreference: (skipFuture) async {
+//             if (skipFuture) {
+//               await StorageService.setBudgetAlertPreference(
+//                 transaction.category,
+//                 transaction.date.month,
+//                 transaction.date.year,
+//                 true,
+//               );
+//             }
+//           },
+//         ),
+//       );
+//
+//       return result ?? false;
+//     }
+//
+//     return true;
+//   } catch (e) {
+//     // If there's an error checking budget, allow the transaction
+//     return true;
+//   }
+// }
