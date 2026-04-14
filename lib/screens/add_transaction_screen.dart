@@ -9,6 +9,7 @@ import '../blocs/transaction/transaction_event.dart';
 import '../models/category.dart';
 import '../models/transaction.dart';
 import '../services/storage_services.dart';
+import '../widgets/budget_breach_alert_dialog.dart';
 
 // Import placeholders for types used in the UI structure
 
@@ -303,16 +304,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
       if (!mounted) return;
 
-      // Check for budget breach only for expense transactions
-      // if (_type == TransactionType.expense) {
-      //   final shouldCheckBudget = await _checkBudgetBreach(transaction);
-      //   if (!shouldCheckBudget) {
-      //     setState(() {
-      //       _isLoading = false;
-      //     });
-      //     return;
-      //   }
-      // }
+      //Check for budget breach only for expense transactions
+      if (_type == TransactionType.expense) {
+        final shouldCheckBudget = await _checkBudgetBreach(transaction);
+        if (!shouldCheckBudget) {
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+      }
 
       if (!mounted) return;
 
@@ -377,83 +378,83 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
 }
 
-// Future<bool> _checkBudgetBreach(Transaction transaction) async {
-//   try {
-//     // Get all budgets
-//     final budgets = await StorageService.getAllBudgetsAsync();
-//
-//     // Find budget for this category and month
-//     final budget = budgets.where((b) =>
-//     b.category == transaction.category &&
-//         b.month == transaction.date.month &&
-//         b.year == transaction.date.year
-//     ).firstOrNull;
-//
-//     // If no budget set, allow transaction
-//     if (budget == null) return true;
-//
-//     // Check if user has opted to skip alerts for this budget this month
-//     final skipAlerts = await StorageService.shouldSkipBudgetAlert(
-//       transaction.category,
-//       transaction.date.month,
-//       transaction.date.year,
-//     );
-//
-//     if (skipAlerts) return true;
-//
-//     // Get all transactions for this category and month
-//     final allTransactions = await StorageService.getAllTransactionsAsync();
-//     final categoryTransactions = allTransactions.where((t) =>
-//     t.category == transaction.category &&
-//         t.type == TransactionType.expense &&
-//         t.date.month == transaction.date.month &&
-//         t.date.year == transaction.date.year &&
-//         t.id != transaction.id // Exclude current transaction if editing
-//     ).toList();
-//
-//     // Calculate current spent
-//     final currentSpent = categoryTransactions.fold<double>(
-//       0.0,
-//           (sum, t) => sum + t.amount,
-//     );
-//
-//     // Check if adding this transaction will breach the budget
-//     final totalAfterTransaction = currentSpent + transaction.amount;
-//
-//     if (totalAfterTransaction > budget.limit) {
-//       // Show budget breach alert
-//       if (!mounted) return false;
-//
-//       final result = await showDialog<bool>(
-//         context: context,
-//         barrierDismissible: false,
-//         builder: (context) => BudgetBreachAlertDialog(
-//           category: transaction.category,
-//           budgetLimit: budget.limit,
-//           currentSpent: currentSpent,
-//           newAmount: transaction.amount,
-//           month: transaction.date.month,
-//           year: transaction.date.year,
-//           onContinue: () {},
-//           onContinueWithPreference: (skipFuture) async {
-//             if (skipFuture) {
-//               await StorageService.setBudgetAlertPreference(
-//                 transaction.category,
-//                 transaction.date.month,
-//                 transaction.date.year,
-//                 true,
-//               );
-//             }
-//           },
-//         ),
-//       );
-//
-//       return result ?? false;
-//     }
-//
-//     return true;
-//   } catch (e) {
-//     // If there's an error checking budget, allow the transaction
-//     return true;
-//   }
-// }
+Future<bool> _checkBudgetBreach(Transaction transaction) async {
+  try {
+    // Get all budgets
+    final budgets = await StorageService.getAllBudgetsAsync();
+
+    // Find budget for this category and month
+    final budget = budgets.where((b) =>
+    b.category == transaction.category &&
+        b.month == transaction.date.month &&
+        b.year == transaction.date.year
+    ).firstOrNull;
+
+    // If no budget set, allow transaction
+    if (budget == null) return true;
+
+    // Check if user has opted to skip alerts for this budget this month
+    final skipAlerts = await StorageService.shouldSkipBudgetAlert(
+      transaction.category,
+      transaction.date.month,
+      transaction.date.year,
+    );
+
+    if (skipAlerts) return true;
+
+    // Get all transactions for this category and month
+    final allTransactions = await StorageService.getAllTransactionsAsync();
+    final categoryTransactions = allTransactions.where((t) =>
+    t.category == transaction.category &&
+        t.type == TransactionType.expense &&
+        t.date.month == transaction.date.month &&
+        t.date.year == transaction.date.year &&
+        t.id != transaction.id // Exclude current transaction if editing
+    ).toList();
+
+    // Calculate current spent
+    final currentSpent = categoryTransactions.fold<double>(
+      0.0,
+          (sum, t) => sum + t.amount,
+    );
+
+    // Check if adding this transaction will breach the budget
+    final totalAfterTransaction = currentSpent + transaction.amount;
+
+    // if (totalAfterTransaction > budget.limit) {
+    //   // Show budget breach alert
+    //   if (!mounted) return false;
+    //
+    //   final result = await showDialog<bool>(
+    //     context: context,
+    //     barrierDismissible: false,
+    //     builder: (context) => BudgetBreachAlertDialog(
+    //       category: transaction.category,
+    //       budgetLimit: budget.limit,
+    //       currentSpent: currentSpent,
+    //       newAmount: transaction.amount,
+    //       month: transaction.date.month,
+    //       year: transaction.date.year,
+    //       onContinue: () {},
+    //       onContinueWithPreference: (skipFuture) async {
+    //         if (skipFuture) {
+    //           await StorageService.setBudgetAlertPreference(
+    //             transaction.category,
+    //             transaction.date.month,
+    //             transaction.date.year,
+    //             true,
+    //           );
+    //         }
+    //       },
+    //     ),
+    //   );
+    //
+    //   return result ?? false;
+    // }
+
+    return true;
+  } catch (e) {
+    // If there's an error checking budget, allow the transaction
+    return true;
+  }
+}

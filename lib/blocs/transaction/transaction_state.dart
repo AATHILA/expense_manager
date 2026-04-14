@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../models/transaction.dart';
 
 abstract class TransactionState extends Equatable {

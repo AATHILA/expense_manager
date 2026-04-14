@@ -1,69 +1,136 @@
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../services/currency_services.dart';
 import 'metric_container.dart';
 
-class BalanceCard extends StatefulWidget {
-  const BalanceCard(BuildContext context, {super.key});
+class BalanceCard extends StatelessWidget {
+  final double balance;
+  final double income;
+  final double expenses;
 
-  @override
-  State<BalanceCard> createState() => _BalanceCardState();
-}
-
-class _BalanceCardState extends State<BalanceCard> {
-  double currentBalance = 0.00;
-  double totalExpenses = 0.00;
-  double totalIncome = 0.00;
+  const BalanceCard({
+    super.key,
+    required this.balance,
+    required this.income,
+    required this.expenses,
+});
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<String>(future: CurrencyService.getCurrencySymbol(),
+        builder: (context, snapshot) {
+          final currencySymbol = snapshot.data ?? '₹';
+          final currencyFormatter = NumberFormat.currency(symbol: currencySymbol, decimalDigits: 2);
+
+          return _buildCard(context, currencyFormatter);
+        });}
+
+  Widget _buildCard(BuildContext context, NumberFormat currencyFormatter) {
     return Card(
       elevation: 4,
-      color: Theme.of(context).colorScheme.primary, // Use primary color for the dark card
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Current Balance',
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-            Text(
-              '₹${currentBalance.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+       child: Container(
+         padding: const EdgeInsets.all(24),
+         decoration: BoxDecoration(
+           borderRadius: BorderRadius.circular(12),
+           gradient: LinearGradient(
+             colors: [
+               Theme.of(context).colorScheme.primary,
+               Theme.of(context).colorScheme.secondary,
+             ],
+             begin: Alignment.topLeft,
+             end: Alignment.bottomRight,
+           ),
+         ),
+         child:
+         Column(
+           crossAxisAlignment: CrossAxisAlignment.start,
+           children: [
+              Text(
+               'Current Balance',
+               style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                 color: Colors.white.withValues(alpha: 0.9),
+               ),
+             ),
+             Text(
+               currencyFormatter.format(balance),
+               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                 color: Colors.white,
+                 fontWeight: FontWeight.bold,
+               ),
+             ),
+             const SizedBox(height: 16),
+             Row(
+               children: [
+                 Expanded(
+                   child: _buildStatItem(
+                     context,
+                     'Income',
+                     currencyFormatter.format(income),
+                     Icons.arrow_downward,
+                     Colors.green.shade300,
+                   )
+                 ),
+                 const SizedBox(width: 16),
+                 Expanded(
+                   child: _buildStatItem(
+                     context,
+                     'Expenses',
+                     currencyFormatter.format(expenses),
+                     Icons.arrow_upward,
+                     Colors.red.shade300,
+                   ),
+                 ),
+               ],
+             ),
+           ],
+         ),
+       ),
+
+    );
+  }
+
+  Widget _buildStatItem(
+      BuildContext context,
+      String label,
+      String value,
+      IconData icon,
+      Color color,
+      ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: MetricContainer(
-                    context,
-                    label: 'Income',
-                    amount: totalIncome,
-                    icon: Icons.arrow_downward,
-                    color: Colors.greenAccent, // Green for Income
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: MetricContainer(
-                    context,
-                    label: 'Expenses',
-                    amount: totalExpenses,
-                    icon: Icons.arrow_upward,
-                    color: Colors.redAccent, // Red for Expenses
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+
 }
 

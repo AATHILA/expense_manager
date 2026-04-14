@@ -1,12 +1,10 @@
-
 import 'package:expense_manager_project/blocs/transaction/transaction_event.dart';
 import 'package:expense_manager_project/blocs/transaction/transaction_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../services/storage_services.dart';
 
 class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
-  TransactionBloc() : super(TransactionInitial()) {
+  TransactionBloc() : super(const TransactionInitial()) {
     on<LoadTransactions>(_onLoadTransactions);
     on<AddTransaction>(_onAddTransaction);
     on<UpdateTransaction>(_onUpdateTransaction);
@@ -64,4 +62,4 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       emit(TransactionError(e.toString()));
     }
   }
- }
+}

@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-
 import '../../models/transaction.dart';
 
 abstract class TransactionEvent extends Equatable {
@@ -7,7 +6,7 @@ abstract class TransactionEvent extends Equatable {
 
   @override
   List<Object> get props => [];
-  }
+}
 
 class LoadTransactions extends TransactionEvent {
   const LoadTransactions();
@@ -21,7 +20,6 @@ class AddTransaction extends TransactionEvent {
   @override
   List<Object> get props => [transaction];
 }
-
 
 class UpdateTransaction extends TransactionEvent {
   final Transaction transaction;
@@ -40,5 +38,4 @@ class DeleteTransaction extends TransactionEvent {
   @override
   List<Object> get props => [id];
 }
-
 
