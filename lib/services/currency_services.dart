@@ -1,6 +1,4 @@
-
-import 'package:expense_manager_project/services/storage_services.dart';
-
+import 'storage_service.dart';
 
 class CurrencyService {
   static String? _cachedSymbol;
@@ -27,7 +25,7 @@ class CurrencyService {
     _cachedSymbol = null;
   }
 
-   // Initialize cache on app start
+  // Initialize cache on app start
   static Future<void> init() async {
     _cachedSymbol = await StorageService.getCurrencySymbol();
   }

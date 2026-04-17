@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../services/notification_services.dart';
-
+import '../services/notification_service.dart';
 
 class NotificationSetupScreen extends StatefulWidget {
   final VoidCallback? onComplete;

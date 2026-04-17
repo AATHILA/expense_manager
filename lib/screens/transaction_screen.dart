@@ -30,8 +30,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     _toDate = DateTime(now.year, now.month + 1, 0); // Last day of current month
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

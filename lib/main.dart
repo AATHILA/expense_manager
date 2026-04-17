@@ -1,45 +1,90 @@
 import 'package:expense_manager_project/screens/budget_screen.dart';
-import 'package:expense_manager_project/screens/currency_setup_screen.dart';
-import 'package:expense_manager_project/screens/dashboard_screen.dart';
-import 'package:expense_manager_project/screens/notification_setup_screen.dart';
 import 'package:expense_manager_project/screens/transaction_screen.dart';
-import 'package:expense_manager_project/services/storage_services.dart';
+import 'package:expense_manager_project/services/currency_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'services/storage_service.dart';
+import 'services/notification_service.dart';
 import 'blocs/transaction/transaction_bloc.dart';
 import 'blocs/transaction/transaction_event.dart';
+import 'blocs/budget/budget_bloc.dart';
+import 'blocs/budget/budget_event.dart';
+import 'blocs/category/category_bloc.dart';
+import 'blocs/category/category_event.dart';
+import 'blocs/theme/theme_bloc.dart';
+import 'blocs/theme/theme_state.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/categories_screen.dart';
+import 'screens/currency_setup_screen.dart';
+import 'screens/notification_setup_screen.dart';
 
-late double width;
-late double height;
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.init();
+  await CurrencyService.init();
+  await NotificationService().init();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    width = MediaQuery.of(context).size.width;
-    height = MediaQuery.of(context).size.height;
-    return BlocProvider(
-      create: (context) => TransactionBloc()..add(const LoadTransactions()),
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => TransactionBloc()..add(const LoadTransactions()),
         ),
-        home: DashboardScreen(),
-
-        routes: {
-          '/transactions': (context) => const TransactionsScreen(),
-          // '/budgets': (context) => const BudgetsScreen(),
-          //'/settings': (context) => const SettingsScreen(),
-          //   '/categories': (context) => const CategoriesScreen(),
-          //   '/currency-setup': (context) => const CurrencySetupScreen(),
+        BlocProvider(
+          create: (_) => BudgetBloc()..add(const LoadBudgets()),
+        ),
+        BlocProvider(
+          create: (_) => CategoryBloc()..add(LoadCategories()),
+        ),
+        BlocProvider(
+          create: (_) => ThemeBloc(),
+        ),
+      ],
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, themeState) {
+          return MaterialApp(
+            title: 'Expense Manager',
+            theme: _buildLightTheme(),
+            darkTheme: _buildDarkTheme(),
+            themeMode: themeState.themeMode,
+            debugShowCheckedModeBanner: false,
+            home: const AppInitializer(),
+            routes: {
+              '/transactions': (context) => const TransactionsScreen(),
+              '/budgets': (context) => const BudgetsScreen(),
+              '/settings': (context) => const SettingsScreen(),
+              '/categories': (context) => const CategoriesScreen(),
+              '/currency-setup': (context) => const CurrencySetupScreen(),
+            },
+          );
         },
+      ),
+    );
+  }
+
+  ThemeData _buildLightTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.blue,
+        brightness: Brightness.light,
+      ),
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.blue,
+        brightness: Brightness.dark,
       ),
     );
   }

@@ -56,7 +56,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                   // Expense Chart
+                    // Expense Chart
                     ExpenseChart(
                       expensesByCategory: state.getExpensesByCategory(),
                       allTransactions: state.transactions,
@@ -105,6 +105,7 @@ class DashboardScreen extends StatelessWidget {
         elevation: 4,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
     );
   }
 

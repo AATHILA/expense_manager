@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
 import '../models/currency.dart';
+import '../main.dart';
 import '../services/currency_services.dart';
 
 class CurrencySetupScreen extends StatefulWidget {
